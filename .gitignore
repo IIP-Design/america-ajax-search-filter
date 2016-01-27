@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+assets/css/.sass-cache
+assets/js/frontend-mix.js
+assets/js/isotope.pkgd.min.js
+includes/add-test-data.php

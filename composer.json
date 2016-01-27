@@ -1,0 +1,16 @@
+{
+    "name": "usstatedept/america-ajax-search",
+    "type": "wordpress-plugin",
+    "description" : "Plugin tp provide js searching and filtering",
+    "authors": [
+        {
+            "name": "Office of Design, Bureau of International Information Programs",
+            "email": "reganta@america.gov"
+        }
+    ],
+    "minimum-stability": "stable",
+    "version": "dev-master",
+    "require": {
+       "composer/installers": "~1.0"
+    }
+}

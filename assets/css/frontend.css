@@ -1,0 +1,37 @@
+.aasf-btn--submit {
+  display: none;
+  margin-left: 1em; }
+
+.aasf-terms-parent {
+  /*border: 1px solid #eee;*/ }
+
+.aasf-label {
+  color: #333; }
+
+.aasf-tax-label {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 5px; }
+
+.aasf-tax-label::before {
+  content: "\25be";
+  margin-right: 5px; }
+
+.sidebar .aasf-tax-terms {
+  margin-bottom: 1.2em; }
+
+.aasf-field {
+  display: inline-block;
+  width: 90%; }
+
+.aasf-num {
+  display: inline-block;
+  width: 10%; }
+
+.aasf-field input {
+  margin-right: .625em; }
+
+aside {
+  border: 1px solid #eee; }
+
+/*# sourceMappingURL=frontend.css.map */
