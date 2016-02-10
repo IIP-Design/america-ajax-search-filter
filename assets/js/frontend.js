@@ -1,4 +1,5 @@
 jQuery(document).ready(function($) {
+    'use strict';
  
     var data = {},
         articles = $( 'main.content article' ),
@@ -34,14 +35,18 @@ jQuery(document).ready(function($) {
             filterSearch(); 
     	});
 
-        // stop default form submission
+        // stop default form submission?
     }
 
     function initializeFilter ( selector ) {
         container = $( selector ).isotope({
             itemSelector: 'article',
-            layoutMode: 'fitRows',
-            animationEngine : 'css'
+            layoutMode: 'fitRows'
+        });
+
+        // give images time to load for proper layout
+        container.imagesLoaded().progress( function() {
+          container.isotope( 'layout' );
         });
     }
 
@@ -59,7 +64,7 @@ jQuery(document).ready(function($) {
             cls;
          
         if( col ) {
-            cls = el.attr('class').split(/\s+/);
+            cls = el.attr('class').split( /\s+/ );
 
             $.each( col, function( index, c ) {
                 if( !(_.contains( cls, c)) ) {
@@ -74,30 +79,29 @@ jQuery(document).ready(function($) {
 
     
     function getClassesToFilterOn ( els ) {
-        var cls, el,
+        var cls, el, tax,
             showCls = [];
        
         $.each( els, function( index, cb ) {
             el =  $( cb );
-            cls = el.attr('name') + '-' + el.val();
+            tax =  el.attr('name').replace('[]', '');
+            cls = tax + '-' + el.val();
             if(el.is(':checked') ) {
                 showCls.push( cls );            
             } 
         });
 
-        return ( showCls.length) ? showCls : null;
+        return ( showCls.length ) ? showCls : null;
     }
-
-  
 
     function init() {
         bindUI();
-        initializeFilter( '.content' );
+        initializeFilter( '.content' );  // this should be sent in via admin panel & not hard
     }
 
     init();
 
-    //fetchSearchData();  this script should be loaded on localize
+    // fetchSearchData();  this script should be loaded on localize
               
 });
 

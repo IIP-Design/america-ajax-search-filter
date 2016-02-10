@@ -25,8 +25,6 @@ require_once( 'includes/class-america-ajax-request.php' );
  * @return object America_Ajax_Search_Filter
  */
 function america_ajax_search_filter () {
-	add_action( 'pre_get_posts', 'aasf_process_search_query' );
-
 	$instance = America_Ajax_Search_Filter::instance( __FILE__, 'dev-0.0.1' );
 
 	if ( is_null( $instance->settings ) ) {
@@ -36,9 +34,6 @@ function america_ajax_search_filter () {
 	return $instance;
 }
 
-
-function aasf_process_search_query( $query ) {
-
-}
-
 america_ajax_search_filter();
+
+//add_action( 'all', create_function( '', 'var_dump( current_filter() );' ) );

@@ -2,9 +2,6 @@
   display: none;
   margin-left: 1em; }
 
-.aasf-terms-parent {
-  /*border: 1px solid #eee;*/ }
-
 .aasf-label {
   color: #333; }
 
@@ -14,8 +11,11 @@
   margin-bottom: 5px; }
 
 .aasf-tax-label::before {
-  content: "\25be";
-  margin-right: 5px; }
+  font: normal 20px/1 'dashicons';
+  content: '\f140';
+  margin-right: 5px;
+  position: relative;
+  top: 3px; }
 
 .sidebar .aasf-tax-terms {
   margin-bottom: 1.2em; }

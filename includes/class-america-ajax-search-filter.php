@@ -1,6 +1,7 @@
 <?php
 
- //* Prevent loading this file directly
+ 
+//* Prevent loading this file directly
 defined( 'ABSPATH' ) || exit;
 
 class America_Ajax_Search_Filter {
@@ -47,41 +48,48 @@ class America_Ajax_Search_Filter {
 		add_action( 'wp_head', array( $this , 'aasf_no_script' ) );
 		add_action( 'wp_enqueue_scripts', array( $this , 'aasf_enqueue_scripts' ) );
 
-		// add_filter( 'pre_get_posts', array($this,'iip_debug_query') );
-		add_filter( 'widget_text', 'shortcode_unautop');  //allow shortcodes to work in text widgets
-		add_filter( 'widget_text', 'do_shortcode');
+		// genesis actions need tobe removed so plugin can be used w/o
+		add_action( 'genesis_before_footer', array( $this,'pagination') );
+
+		//add_filter( 'widget_text', array( $this, 'shortcode_unautop' ));  // allow shortcodes to work in text widgets
+		//add_filter( 'widget_text', array( $this, 'do_shortcode') );
 
 		add_shortcode( 'aasf', array($this, 'aasf_shortcode') );
 	}
 
 	/**
 	 * Show filter submit button if javascript is turned off
-	 * @return [type] [description]
 	 */
 	function aasf_no_script() {
 		$output = '<noscript><style type="text/css"> .aasf-btn--submit { display:block; }</style></noscript>';
+		// TESTING $output = '<style type="text/css"> .aasf-btn--submit { display:block; }</style>';
 		echo $output;
 	}
 
 	function aasf_enqueue_scripts () {
-		wp_register_style( 'frontend-css', $this->assets_url . 'css/frontend.css', array(), false, 'all' );
-        wp_enqueue_style( 'frontend-css' );
+		if( is_search() || is_archive() ) {
+			wp_register_style( 'frontend-css', $this->assets_url . 'css/frontend.css', array(), false, 'all' );
+			wp_enqueue_style( 'frontend-css' );
 
-        wp_register_script( 'isotope', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.2/isotope.pkgd.min.js', array(), false, true );
-        wp_enqueue_script( 'isotope' );
+			wp_register_script( 'images-loaded', 'https://npmcdn.com/imagesloaded@4.1/imagesloaded.pkgd.min.js', array(), false, true );
+			wp_enqueue_script( 'images-loaded' );
 
-        wp_register_script( 'frontend-js', $this->assets_url . 'js/frontend.js', array('jquery'), false, true );
-        wp_enqueue_script( 'frontend-js' );
+			wp_register_script( 'isotope', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.2/isotope.pkgd.min.js', array(), false, true );
+			wp_enqueue_script( 'isotope' );
 
-        wp_enqueue_script( 'underscore' );
+			wp_register_script( 'frontend-js', $this->assets_url . 'js/frontend.js', array('jquery'), false, true );
+			wp_enqueue_script( 'frontend-js' );
 
-        wp_localize_script('frontend-js', 'aasf', array('ajaxurl' => admin_url('admin-ajax.php') ));
+			wp_enqueue_script( 'underscore' );
+
+			wp_localize_script('frontend-js', 'aasf', array('ajaxurl' => admin_url('admin-ajax.php') ));  // localize after init data return
+		}
 	}
 
 	
 	// for php version, will need to handle css display for selected item on page load/reload
 	// add class to shortcode return
-	// filterBy, label, layout (checkbox, radio, link), show results number, base result- cat, taxonomu, search result
+	// filterBy, label, layout (checkbox, radio, link), show results number, base result- cat, taxonomy, search result
 	function aasf_shortcode( $atts ) {     // possible atts: header, position (top, side), all (show all results), show if empty--i.e. no results for 'about america', result set
 		$merged_atts = shortcode_atts( array (
 			'filter_by' => [],
@@ -97,10 +105,6 @@ class America_Ajax_Search_Filter {
 
 	function render( $atts ) {
 		extract( $atts );
-		
-		if ( $_SERVER['REQUEST_METHOD'] == "POST" ) {
-		  echo 'Form posted';
-		}
 
 		$filters = preg_split( "/[\s,]+/", $filter_by );
 		$options = array (
@@ -110,28 +114,33 @@ class America_Ajax_Search_Filter {
 
 		$html = '';
 
-		if ( $this->hasTaxonomyTerms($filters) ) {  // make sure that there are taxonomy terms present in any of the filters before we write out any html
+		if ( $this->has_taxonomy_terms($filters) ) {  // make sure that there are taxonomy terms present in any of the filters before we write out any html
 			if( trim($label) ) {
-				$html .= '<div class="aasf-label">' . $label . '</div>';
+				$html .= '<span class="aasf-label">' . $label . '</span>';
 			}
+
 			$html .= '<ul class="aasf-terms-parent">';
 			foreach ( $filters as $filter ) {	
-				$f = explode( '|', $filter );   // get view
+				$f = explode( '|', $filter );   // get view, search type
 				$options['view'] = $f[1];
+				//$options['search_type'] = $f[2];
 				
 				if( $terms = get_terms( $f[0] ) ) {
 					if( $show_taxonomy_name ) {			// what is title? taxonomy name or something else?  May need to adjust pub custom post type, check that empty php string returns true
 						$html .= '<li class="aasf-tax-name"><div class="aasf-tax-label">' . $this->get_taxonomy_name( $f[0] ) . '</div>';
-						$html .= '<ul class="aasf-tax-terms">' . $this->renderTerms( $terms, $options ) . '</ul>';
+						$html .= '<ul class="aasf-tax-terms">' . $this->render_terms( $terms, $options ) . '</ul>';
 						$html .= '</li>';
 					} else {
-						$html .= $this->renderTerms( $terms, $options );
+						$html .= $this->render_terms( $terms, $options );
 					}
 				}
 			}
 			$html .= '</ul>';
-
-			$html = $this->renderFormWrapper( $html, $options );
+			if( is_search() ) {
+				$html .= '<input type="hidden" name="s" value="' . get_query_var('s') .'">';
+			}
+			
+			$html = $this->render_form_wrapper( $html, $options );
 		}
 		return $html;
 	}
@@ -146,7 +155,7 @@ class America_Ajax_Search_Filter {
 	 * @param  [type]  $taxonomies [description]
 	 * @return boolean             has taxonomies?
 	 */
-	function hasTaxonomyTerms( $taxonomies ) {
+	function has_taxonomy_terms( $taxonomies ) {
 		foreach ( $taxonomies as $taxonomy ) {
 			if( get_terms( $taxonomy ) ) {     // if no terms  then  WP_Error object is returned ?? use is_wp_error
 				return true;
@@ -155,17 +164,17 @@ class America_Ajax_Search_Filter {
 		return false;
 	}
 
-	function renderTerms( $terms, $options ) {
-		$count = $options['$show_count'];
+	function render_terms( $terms, $options ) {
+		$count = $options['show_count'];
 
 		$html = '';
 		switch ( $options['view'] ) {
 			case 'url':
-				$html .= $this->renderUrl( $terms, $options );
+				$html .= $this->render_url( $terms, $options );
 				break;
 			case 'checkbox':
 			case 'radio':
-				$html .= $this->renderInputs( $terms, $options );
+				$html .= $this->render_inputs( $terms, $options );
 				break;
 			default:
 				$html .= $term->name;
@@ -174,11 +183,11 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 
-	function renderUrl( $terms, $options ) {
+	function render_url( $terms, $options ) {
 		$html = '';
 		
 		foreach ( $terms as $term ) {
-			$num = $this->getTermCount( $term->taxonomy, $term->name );
+			$num = $this->get_term_count( $term->taxonomy, $term->name );
 			$cat =  get_query_var( 'category_name');
 			$data_tax = $term->taxonomy;
 			$data_term = $term->name;
@@ -189,12 +198,12 @@ class America_Ajax_Search_Filter {
 				$html .= '<li class="aasf-tax-term"><a href="' . $url . '" data-tax="' . $data_tax . '" data-term="' . $data_term . '">' . $term->name . '</a></li>';  // use esc_url($url) and sanitize_term?
 			}
 		}
-		$html .= "<li><a href='" . get_site_url() . $query . "'>All</a></li>";
+		$html .= '<li class="aasf-tax-term"><a href="' . get_site_url() . $query . '">All</a></li>';
 
 		return $html;
 	}
 
-	function renderInputs( $terms, $options ) {   // need full $options?
+	function render_inputs( $terms, $options ) {   // need full $options?
 		$totalTermsInTax = 0;  // total terms in taxonomy
 
 		$html = '';
@@ -204,12 +213,14 @@ class America_Ajax_Search_Filter {
 			$name = $term->name;
 			$slug = $term->slug;
 			$tax = $term->taxonomy;
-			$num = $this->getTermCount( $tax, $name );
+			$num = $this->get_term_count( $tax, $name );		// only show if has posts?
 			$view = $options['view'];
+			$checked = ( $this->is_checked( $tax, $slug) ) ? 'checked' : '';  
+			//$type = ( $options['search_type'] == 'OR' ) ? 'OR' : 'AND';
 
-			if( $num && $name != 'Uncategorized') { // only show if has posts?
+			if( $name != 'Uncategorized') { 			// only show if has posts?
 				$html .= '<li class="aasf-tax-term">';
-				$html .= '<div class="aasf-field"><input id="' . $id .'" type="' . $view . '" name="' . $tax . '" value="' . $slug .'">';
+				$html .= '<div class="aasf-field"><input id="' . $id .'" type="' . $view . '" name="' . $tax . '[]" value="' . $slug . '" ' . $checked  . '>'; //[] breaking js
 				$html .= '<label for="' . $id . '">' . $name . '</label></div>';
 				if( $options['show_count'] ) {
 					$html .= '<div class="aasf-num">' . $num . '</div>';
@@ -219,14 +230,39 @@ class America_Ajax_Search_Filter {
 			$totalTermsInTax += $num;
 		}
 
+		// $html .= '<input type="hidden" name="' . $tax . '-filter" value="' . $type .'">';
+
 		// if( $view == 'radio' ) {  // add shortcode to trn this off?
-		// 	$html .= $this->addInputAll( $tax, $totalTermsInTax, $options['show_count'] );
+		// 	$html .= $this->add_input_all( $tax, $totalTermsInTax, $options['show_count'] );
 		// }
 
 		return $html;
 	}
+	
+	function is_checked ( $tax, $slug ) {
+		$req_method = $_SERVER['REQUEST_METHOD'];
+		
+		if( $req_method == 'POST' ) {
+			if( isset($_POST[$tax]) ) {
+				foreach ( $_POST[$tax] as $term ) {
+					if( $slug == $term ) {
+						return true;
+					}
+				}
+			}
+		} else if ( $req_method == 'GET' ) {
+			if( isset($_GET[$tax]) ) {
+				foreach ( $_GET[$tax] as $term ) {
+					if( $slug == $term ) {
+						return true;
+					}
+				}
+			} 
+		}
+        return false;
+    }
 
-	function addInputAll( $tax, $num, $show ) {
+	function add_input_all( $tax, $num, $show ) {
 		$html = '';
 
 		$html .= '<li class="aasf-tax-term" data-tax="' . $tax . '" data-term="All">';
@@ -240,16 +276,16 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 
-	function renderFormWrapper( $html, $options ) {
+	function render_form_wrapper( $html, $options ) {
 		if( $options['view'] != 'url') { 
-			$html = '<form id="aasf-filter" method="POST" action="">' . $html . '<button class="aasf-btn--submit" type="submit">Filter</button>' . '</form>';
+			$html = '<form id="aasf-filter" method="post" action="">' . $html . '<button class="aasf-btn--submit" type="submit">Filter</button>' . '</form>';
 		}
 		return $html;
 	}
 
 	// is this the most efficient way of doing this as could be hitting db numerous times
 	// can we query the default loop instead?
-	function getTermCount( $tax, $term ) {  
+	function get_term_count( $tax, $term ) {  
 		$args = array();
 
 		if( $s = get_query_var('s') ) {  // search param present?
@@ -271,20 +307,66 @@ class America_Ajax_Search_Filter {
 		return $query->post_count;
 	}
 
-	function publications_search_query( $query ) {
-		echo 'POST';
-		// if ( $_SERVER['REQUEST_METHOD'] == "POST" ) {
-		//   echo 'form posted grabbing from classs';
-		// }
-	}
 
-	function debug_query () {
+	function parse_request_vars( &$ids ) {
+    	if( is_search() || is_archive() ) {
+    		 if( !empty($_POST) ) {
+    		 	foreach ($_POST as $tax => $terms ) { 
+    		 		if( taxonomy_exists($tax) ) {
+    		 			$ids[$tax] = array();
+    		 			foreach ( $terms as $term ) { 
+    		 				$ids[$tax][] = $term;
+    		 			}
+    		 		}
+    		 	}
+    		 }
+    	}
+    }
+    
+	/**
+	 * Write out pagination to include selected filters for query args
+	 * @return void
+	 */
+	function pagination() {
 		global $wp_query;
-		echo '<pre>';
-		var_dump($wp_query->query_vars);
-		echo '</pre>';
-	}
+		
+		if( $wp_query->is_search() || $wp_query->is_archive() ) {
+			$prev_arrow = is_rtl() ? '&rarr;' : '&larr;';
+			$next_arrow = is_rtl() ? '&larr;' : '&rarr;';
+			
+			$total = $wp_query->max_num_pages;
+			$big = 999999999; // need an unlikely integer
+			if( $total > 1 )  {
+				if( !$current_page = get_query_var('paged') )
+					 $current_page = 1;
+				if( get_option('permalink_structure') ) {
+					 $format = 'page/%#%/';
+				} else {
+					 $format = '&paged=%#%';
+				}
 
+				$ids = array();
+				$this->parse_request_vars( $ids );  // what if no POST?
+				$str_ids = implode(' ', $ids );
+				
+				echo paginate_links( array (
+					//'base'			=> str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+					'format'	 =>  $format,
+					'current'	 =>  max( 1, get_query_var('paged') ),
+					'total' 	 =>  $total,
+					'mid_size'	 =>  3,
+					'type' 		 =>  'list',
+					'prev_text'	 =>  $prev_arrow,
+					'next_text'	 =>  $next_arrow,
+					'add_args'	 =>  $ids
+ 				 ) );
+			}
+		}
+	}
 } // end America_Ajax_Search_Filter class
+
+
+
+
 
 

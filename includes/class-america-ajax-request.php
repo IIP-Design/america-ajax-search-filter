@@ -7,6 +7,9 @@ class America_Ajax_Request {
 
         add_action( "wp_ajax_nopriv_action", array ( $this, 'aasf_filter' ) );
         add_action( "wp_ajax_action",array( $this,'aasf_filter'));
+        
+        // modify query for non js return
+        add_action( "pre_get_posts", array( $this, 'modify_search_query'));
     }
 
     public function aasf_filter () {
@@ -40,7 +43,7 @@ class America_Ajax_Request {
             $cat = get_category($c);
             $cats[] = $cat->name;
         }
-        return implode(',',$cats);
+        return implode( ',', $cats );
     }
 
     function get_taxonomies( $post ) {
@@ -70,7 +73,55 @@ class America_Ajax_Request {
         return wp_get_attachment_url( $id );
     }
 
-}
+    
+     // http://10up.com/blog/2013/wordpress-mixed-relationship-taxonomy-queries/ 
+     // TODO:  Deal with 'OR' & 'AND' operators
+    public function modify_search_query( $query ) {  
+       if( $query->is_main_query() && $query->is_search ) {
+            
+             $req_method = $_SERVER['REQUEST_METHOD'];
+             $arr = ( $req_method == 'POST' ) ? $_POST : $_GET;
+             
+             $taxquery = array (
+                 'relation' => 'AND'
+             );
 
-new America_Ajax_Request ();
+             foreach ( $arr as $name => $value ) {
+                 if( $name != 's' ) {
+                     //$operator = $_POST[$name . '-filter'];
+                     //$operator = ( $operator == 'AND' ) ? 'AND' : 'IN';
+
+                     $taxquery[] = array (
+                         'taxonomy' => $name,
+                         'terms' => $this->get_tt_ids( $name, $value ),
+                         'field' => 'term_taxonomy_id',
+                         'operator' => 'IN',
+                         'include_children' => false
+                     );
+                 }
+             }
+             
+             $query->set( 'post_status', 'publish' ); 
+             $query->set( 'tax_query', $taxquery );
+            
+        } 
+      
+        return $query;
+    }
+   
+    function get_tt_ids( $taxonomy, $terms ) {
+        $ids = array();
+   
+        foreach ( $terms as $term ) {
+            $id = get_term_by( 'slug', $term, $taxonomy )->term_taxonomy_id;
+            if( $id ) {
+                $ids[] = $id;
+            }
+        }
+        return $ids;
+    }
+
+} // end of  America_Ajax_Request
+
+$aasf_request = new America_Ajax_Request ();
 

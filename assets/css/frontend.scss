@@ -16,7 +16,7 @@
 }
 
 .aasf-terms-parent {
-	/*border: 1px solid #eee;*/
+
 }
 
 .aasf-label {
@@ -30,10 +30,12 @@
 }
 
 .aasf-tax-label::before { 
-    content: "\25be";
-    margin-right: 5px;
+	font: normal 20px/1 'dashicons';
+    content: '\f140';
+    margin-right: 5px; 
+    position: relative;
+    top: 3px;
 }
-
 
 .sidebar .aasf-tax-terms {
 	margin-bottom: 1.2em;
@@ -57,24 +59,6 @@ aside {
 	border: 1px solid #eee;
 }
 
-// .pubs h3 {
-//     margin: 0;
-//     line-height: 100%;
-//     font-size: 17px;
-//     font-weight: 400;
-// }
-
-// .pubs h3 small {
-//     display: block;
-//     margin-top: 8px;
-//     color: #AEAEAE;
-//     line-height: 160%;
-// }
-
-// .pubs-search-post .entry-title {
-// 	margin-top: 0;
-// 	margin-bottom: 5px;
-// }
 
 
 
