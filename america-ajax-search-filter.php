@@ -13,9 +13,13 @@ Domain Path:     /languages/
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+define("AASF_PLUGIN_DIR", plugin_dir_path( dirname( __FILE__ ) ) . 'america-ajax-search-filter/' );
+
 // Load plugin class files
 require_once( 'includes/class-america-ajax-search-filter.php' );
 require_once( 'includes/class-america-ajax-search-filter-settings.php' );
+require_once( 'includes/class-gamajo-template-loader.php' );
+require_once( 'includes/class-america-template-loader.php' );
 require_once( 'includes/class-america-ajax-request.php' );
 
 /**
