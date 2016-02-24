@@ -48,8 +48,9 @@ class America_Ajax_Search_Filter {
 		add_action( 'wp_head', array( $this , 'aasf_no_script' ) );
 		add_action( 'wp_enqueue_scripts', array( $this , 'aasf_enqueue_scripts' ) );
 
-		// genesis actions need tobe removed so plugin can be used w/o
-		add_action( 'genesis_before_footer', array( $this,'pagination') );
+		// genesis actions need to be removed so plugin can be used w/o
+		//add_action( 'genesis_before_footer', array( $this,'pagination') );
+		add_action( 'genesis_after_loop', array( $this,'pagination') );
 
 		//add_filter( 'widget_text', array( $this, 'shortcode_unautop' ));  // allow shortcodes to work in text widgets
 		//add_filter( 'widget_text', array( $this, 'do_shortcode') );
@@ -82,7 +83,13 @@ class America_Ajax_Search_Filter {
 
 			wp_enqueue_script( 'underscore' );
 
-			wp_localize_script('frontend-js', 'aasf', array('ajaxurl' => admin_url('admin-ajax.php') ));  // localize after init data return
+			wp_localize_script('frontend-js', 'aasf', array (
+					'ajaxurl' => admin_url('admin-ajax.php'), 
+					'aasfNonce' => wp_create_nonce( 'aasf-ajax-post-nonce' ),
+					'container' => '.content',  // eventually fetch from «
+					'itemSelector' => 'article'
+				)
+			);  // localize after init data return
 		}
 	}
 
@@ -185,20 +192,27 @@ class America_Ajax_Search_Filter {
 
 	function render_url( $terms, $options ) {
 		$html = '';
+		$cat =  get_query_var( 'category_name');
+		$all = '';
 		
 		foreach ( $terms as $term ) {
+	
 			$num = $this->get_term_count( $term->taxonomy, $term->name );
-			$cat =  get_query_var( 'category_name');
-			$data_tax = $term->taxonomy;
-			$data_term = $term->name;
+			$data = 'category__' . $cat . ',';   // assuming category but need to analyize url
+			$data .= $term->taxonomy . '__' . $term->slug;
+			$cls = ( strpos($_SERVER['REQUEST_URI'], $term->slug ) !== false ) ? 'active-filter' : '';
 
 			if( $num ) {  // only show terms that have posts
 				$query = ( is_category() ) ? "?category_name=" . $cat : '';  // if category page, what about taxonomy page?
 				$url = get_term_link( $term ) . $query;
-				$html .= '<li class="aasf-tax-term"><a href="' . $url . '" data-tax="' . $data_tax . '" data-term="' . $data_term . '">' . $term->name . '</a></li>';  // use esc_url($url) and sanitize_term?
+				$html .= '<li class="aasf-tax-term"><a href="' . $url . '" data-terms="' . $data . '" class="' . $cls . '">' . $term->name . '</a></li>';  // use esc_url($url) and sanitize_term?
 			}
+
+			$all .= $data . ',';
 		}
-		$html .= '<li class="aasf-tax-term"><a href="' . get_site_url() . $query . '">All</a></li>';
+
+		$all = implode(',', array_unique(explode( ',', $all )));
+		$html .= '<li class="aasf-tax-term"><a href="' . get_site_url() . $query . '" data-terms="'. $all . '" class="active-filter">All</a></li>';
 
 		return $html;
 	}
@@ -220,7 +234,7 @@ class America_Ajax_Search_Filter {
 
 			if( $name != 'Uncategorized') { 			// only show if has posts?
 				$html .= '<li class="aasf-tax-term">';
-				$html .= '<div class="aasf-field"><input id="' . $id .'" type="' . $view . '" name="' . $tax . '[]" value="' . $slug . '" ' . $checked  . '>'; //[] breaking js
+				$html .= '<div class="aasf-field"><input id="' . $id .'" type="' . $view . '" name="' . $tax . '[]" value="' . $slug . '" ' . $checked  . ' rel="' . $tax .  '">'; //[] breaking js
 				$html .= '<label for="' . $id . '">' . $name . '</label></div>';
 				if( $options['show_count'] ) {
 					$html .= '<div class="aasf-num">' . $num . '</div>';
@@ -331,18 +345,16 @@ class America_Ajax_Search_Filter {
 		global $wp_query;
 		
 		if( $wp_query->is_search() || $wp_query->is_archive() ) {
-			$prev_arrow = is_rtl() ? '&rarr;' : '&larr;';
-			$next_arrow = is_rtl() ? '&larr;' : '&rarr;';
 			
 			$total = $wp_query->max_num_pages;
 			$big = 999999999; // need an unlikely integer
 			if( $total > 1 )  {
 				if( !$current_page = get_query_var('paged') )
-					 $current_page = 1;
+					$current_page = 1;
 				if( get_option('permalink_structure') ) {
-					 $format = 'page/%#%/';
+					$format = 'page/%#%/';
 				} else {
-					 $format = '&paged=%#%';
+					$format = '&paged=%#%';
 				}
 
 				$ids = array();
@@ -356,10 +368,8 @@ class America_Ajax_Search_Filter {
 					'total' 	 =>  $total,
 					'mid_size'	 =>  3,
 					'type' 		 =>  'list',
-					'prev_text'	 =>  $prev_arrow,
-					'next_text'	 =>  $next_arrow,
 					'add_args'	 =>  $ids
- 				 ) );
+ 				) );
 			}
 		}
 	}
