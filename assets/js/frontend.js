@@ -106,7 +106,7 @@ jQuery(document).ready(function($) {
             // trigger ajax call 
     	});
 
-        $( 'a.page-numbers' ).click( function( evt ) {
+        $( '.pages-filter a.page-numbers' ).click( function( evt ) {
             cancelSubmisson ( evt );
 
             var url = $(evt.target).attr('href'),

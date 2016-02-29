@@ -131,7 +131,6 @@ class America_Ajax_Search_Filter {
 				$f = explode( '|', $filter );   // get view, search type
 				$options['view'] = $f[1];
 				//$options['search_type'] = $f[2];
-				
 				if( $terms = get_terms( $f[0] ) ) {
 					if( $show_taxonomy_name ) {			// what is title? taxonomy name or something else?  May need to adjust pub custom post type, check that empty php string returns true
 						$html .= '<li class="aasf-tax-name"><div class="aasf-tax-label">' . $this->get_taxonomy_name( $f[0] ) . '</div>';
@@ -192,7 +191,7 @@ class America_Ajax_Search_Filter {
 
 	function render_url( $terms, $options ) {
 		$html = '';
-		$cat =  get_query_var( 'category_name');
+		$cat =  get_query_var( 'category_name'); // assuming category, update to be more generic, i.e. taxonomy page
 		$all = '';
 		
 		foreach ( $terms as $term ) {
@@ -205,7 +204,7 @@ class America_Ajax_Search_Filter {
 			if( $num ) {  // only show terms that have posts
 				$query = ( is_category() ) ? "?category_name=" . $cat : '';  // if category page, what about taxonomy page?
 				$url = get_term_link( $term ) . $query;
-				$html .= '<li class="aasf-tax-term"><a href="' . $url . '" data-terms="' . $data . '" class="' . $cls . '">' . $term->name . '</a></li>';  // use esc_url($url) and sanitize_term?
+				$html .= '<li class="aasf-tax-term"><a href="' . esc_url($url) . '" data-terms="' . $data . '" class="' . $cls . '">' . $term->name . 's</a></li>'; 
 			}
 
 			$all .= $data . ',';
@@ -323,7 +322,7 @@ class America_Ajax_Search_Filter {
 
 
 	function parse_request_vars( &$ids ) {
-    	if( is_search() || is_archive() ) {
+		if( is_search() || is_archive() ) {
     		 if( !empty($_POST) ) {
     		 	foreach ($_POST as $tax => $terms ) { 
     		 		if( taxonomy_exists($tax) ) {
@@ -344,8 +343,8 @@ class America_Ajax_Search_Filter {
 	function pagination() {
 		global $wp_query;
 		
-		if( $wp_query->is_search() || $wp_query->is_archive() ) {
-			
+		// this needs to be fixed as other archive types may be used
+		if( $wp_query->is_search() || $wp_query->is_category() ) {  
 			$total = $wp_query->max_num_pages;
 			$big = 999999999; // need an unlikely integer
 			if( $total > 1 )  {
@@ -361,15 +360,19 @@ class America_Ajax_Search_Filter {
 				$this->parse_request_vars( $ids );  // what if no POST?
 				$str_ids = implode(' ', $ids );
 				
+				echo '<div class="pages-filter">';
 				echo paginate_links( array (
-					//'base'			=> str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+					//'base'	 => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
 					'format'	 =>  $format,
 					'current'	 =>  max( 1, get_query_var('paged') ),
+					'prev_text'  => __('« Previous Page'),
+					'next_text'  => __('Next Page »'),
 					'total' 	 =>  $total,
 					'mid_size'	 =>  3,
 					'type' 		 =>  'list',
 					'add_args'	 =>  $ids
  				) );
+ 				echo '</div>';
 			}
 		}
 	}

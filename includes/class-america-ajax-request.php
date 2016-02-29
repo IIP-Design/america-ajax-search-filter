@@ -38,7 +38,7 @@ class America_Ajax_Request {
         
         $args = array (
             'post_type'  => 'publication',  // needs to be sent in
-            'posts_per_page' => 12,  // use 3 for testing
+            'posts_per_page' => 12,  // use 3 for testing -- fetch posts-per-page from intial load
             'tax_query' => $this->get_taxonomy_query( $filters ),
             'paged' => $paged,
             'post_status' => 'publish' 
@@ -63,15 +63,19 @@ class America_Ajax_Request {
         }
 
         // this is repeated as it also appears in the main filter class, consolidate
+        echo '<div class="pages-filter">';
         echo paginate_links( array (  
             'base'       => home_url( '/%_%' ),
             'format'     => 'page/%#%/',
             'current'    =>  $paged,
             'total'      =>  $qry->max_num_pages,
+            'prev_text'  => __('« Previous Page'),
+            'next_text'  => __('Next Page »'),
             'mid_size'   =>  3,
             'type'       =>  'list',
            // 'add_args'   =>  array('s' => '')
         ) );
+        echo '</div>';
       
         echo ob_get_clean();
     
