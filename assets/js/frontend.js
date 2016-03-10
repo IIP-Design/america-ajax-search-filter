@@ -42,8 +42,6 @@ jQuery(document).ready(function($) {
 	    });  
     }
 
-    // promises  .done(), .fail(), .always(), and .then() —
-   
     function sendRequest( filters, page ) {
         var params = getQueryParams(),
             searchValue = $('input[type="search"').val();
