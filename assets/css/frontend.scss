@@ -5,20 +5,8 @@
 	margin-left: 1em;
 }
 
-.aasf-label {
-
-}
-
-.aasf-tax-name {
-
-}
-
-.aasf-tax-term {
-	
-}
-
-.aasf-terms-parent {
-
+.aasf-wrapper {
+	display: inline-block; 
 }
 
 .aasf-label {
@@ -61,6 +49,17 @@ aside {
 	border: 1px solid #eee;
 }
 
+// classess are in markup but not currently being used
+.aasf-terms-parent {
 
+}
+
+.aasf-tax-name {
+
+}
+
+.aasf-tax-term {
+	
+}
 
 

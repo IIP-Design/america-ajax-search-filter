@@ -10,6 +10,7 @@ class America_Ajax_Search_Filter {
 
 	private $_version;
 	private $_token;
+	private $_show_filters = true;   // only show url filters if a more than 1 taxonomy terms has posts
 
 	public $settings = null;
 
@@ -119,7 +120,7 @@ class America_Ajax_Search_Filter {
 			'show_taxonomy_name' => $show_taxonomy_name
 		);
 
-		$html = '';
+		$html = '<div class="aasf-wrapper">';
 
 		if ( $this->has_taxonomy_terms($filters) ) {  // make sure that there are taxonomy terms present in any of the filters before we write out any html
 			if( trim($label) ) {
@@ -130,8 +131,9 @@ class America_Ajax_Search_Filter {
 			foreach ( $filters as $filter ) {	
 				$f = explode( '|', $filter );   // get view, search type
 				$options['view'] = $f[1];
-				//$options['search_type'] = $f[2];
-				if( $terms = get_terms( $f[0] ) ) {
+				// $options['search_type'] = $f[2];
+				
+ 				if( $terms = get_terms( $f[0] ) ) {
 					if( $show_taxonomy_name ) {			// what is title? taxonomy name or something else?  May need to adjust pub custom post type, check that empty php string returns true
 						$html .= '<li class="aasf-tax-name"><div class="aasf-tax-label">' . $this->get_taxonomy_name( $f[0] ) . '</div>';
 						$html .= '<ul class="aasf-tax-terms">' . $this->render_terms( $terms, $options ) . '</ul>';
@@ -141,14 +143,14 @@ class America_Ajax_Search_Filter {
 					}
 				}
 			}
-			$html .= '</ul>';
+			$html .= '</ul></div>';
 			if( is_search() ) {
 				$html .= '<input type="hidden" name="s" value="' . get_query_var('s') .'">';
 			}
 			
 			$html = $this->render_form_wrapper( $html, $options );
 		}
-		return $html;
+		return ( $this->_show_filters ) ? $html : '';
 	}
 
 	function get_taxonomy_name( $taxonomy ) {
@@ -193,15 +195,19 @@ class America_Ajax_Search_Filter {
 		$html = '';
 		$cat =  get_query_var( 'category_name'); // assuming category, update to be more generic, i.e. taxonomy page
 		$all = '';
+		$num_terms = count($terms); 
+		$num_terms_with_posts = 0; 
 		
 		foreach ( $terms as $term ) {
 	
 			$num = $this->get_term_count( $term->taxonomy, $term->name );
+			
 			$data = 'category__' . $cat . ',';   // assuming category but need to analyize url
 			$data .= $term->taxonomy . '__' . $term->slug;
 			$cls = ( strpos($_SERVER['REQUEST_URI'], $term->slug ) !== false ) ? 'active-filter' : '';
 
 			if( $num ) {  // only show terms that have posts
+				$num_terms_with_posts++;
 				$query = ( is_category() ) ? "?category_name=" . $cat : '';  // if category page, what about taxonomy page?
 				$url = get_term_link( $term ) . $query;
 				$html .= '<li class="aasf-tax-term"><a href="' . esc_url($url) . '" data-terms="' . $data . '" class="' . $cls . '">' . $term->name . 's</a></li>'; 
@@ -211,7 +217,13 @@ class America_Ajax_Search_Filter {
 		}
 
 		$all = implode(',', array_unique(explode( ',', $all )));
-		$html .= '<li class="aasf-tax-term"><a href="' . get_site_url() . $query . '" data-terms="'. $all . '" class="active-filter">All</a></li>';
+
+		// we only need to show the filter menu if there are more than one taxonomy terms with posts
+		if( $num_terms_with_posts > 1 ) {
+			$html .= '<li class="aasf-tax-term"><a href="' . get_site_url() . $query . '" data-terms="'. $all . '" class="active-filter">All</a></li>';
+		} else {
+			$this->_show_filters = false;
+		}
 
 		return $html;
 	}

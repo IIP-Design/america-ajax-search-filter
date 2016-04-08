@@ -398,6 +398,9 @@
   display: none;
   margin-left: 1em; }
 
+.aasf-wrapper {
+  display: inline-block; }
+
 .aasf-label {
   color: #333; }
 
