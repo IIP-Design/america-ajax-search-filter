@@ -9,7 +9,6 @@
         }
     ],
     "minimum-stability": "stable",
-    "version": "dev-master",
     "require": {
        "composer/installers": "~1.0"
     }
