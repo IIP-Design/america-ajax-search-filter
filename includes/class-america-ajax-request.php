@@ -49,14 +49,17 @@ class America_Ajax_Request {
         }
 
         $qry = new WP_Query( $args );
-        //$GLOBALS['wp_query'] = $posts;
+
+        // pass this into template->this is not good way -> create another template for category archive
+        // templates shoiuld be moved to theme
+        $GLOBALS['isCategory'] = $query_data['isCategory'];  
         
         ob_start();
         
         if ( $qry->have_posts() ) {
             while ( $qry->have_posts() ) {
                 $qry->the_post();
-                $this->tmpl_loader->get_template_part( 'content' );
+                $this->tmpl_loader->get_template_part( 'content' ); 
             }
         } else {
             echo '<div>There are no posts.</div>';
@@ -69,8 +72,8 @@ class America_Ajax_Request {
             'format'     => 'page/%#%/',
             'current'    =>  $paged,
             'total'      =>  $qry->max_num_pages,
-            'prev_text'  => __('« Previous Page'),
-            'next_text'  => __('Next Page »'),
+            'prev_text'  => __('« Previous'),
+            'next_text'  => __('Next »'),
             'mid_size'   =>  3,
             'type'       =>  'list',
            // 'add_args'   =>  array('s' => '')

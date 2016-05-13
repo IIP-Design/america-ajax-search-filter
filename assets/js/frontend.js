@@ -9,16 +9,17 @@ jQuery(document).ready(function($) {
         xhr = null,
         cueRequest = null,  // local variable?
         filters = null,
-        $container, $loader;
+        $container, $loader,
+        $loaderHolder = $( '.content' ).parent(); // element to which to attach loading animation
 
     function fetchPosts ( filters, paged ) {
-
         xhr = $.ajax({
 	        url: aasf.ajaxurl,
             type: 'post',
 	        data: {
 	            action : 'find-posts',
                 aasfNonce : aasf.aasfNonce,
+                isCategory: aasf.isCategory,
 	            filters : filters,
                 paged: paged
 	        },
@@ -32,7 +33,7 @@ jQuery(document).ready(function($) {
                 if( xhr.readyState == 4 ) {
                     $('.content').html( data );
                     loaderHide();
-                    bindUI ();  // need to verify whether listeners are reomved with DOM el
+                    bindUI();  // need to verify whether listeners are reomved with DOM el
                 }
 	        },
 	        error: function( err ) {
@@ -57,6 +58,25 @@ jQuery(document).ready(function($) {
         evt.preventDefault();
         evt.stopPropagation();
         evt.stopImmediatePropagation();
+    }
+
+    function bindSearchFilterMenu () {
+
+        $( '.aasf-trigger' ).click( function( evt ) {
+            var li = $(this).closest('li'),
+                ul = li.find( 'ul' ),
+                label = $(this).find( 'div' );
+
+            ul.toggle();
+            if(  ul.is(':visible') ) {
+                label.removeClass('aasf-left');
+                label.addClass('aasf-down');
+            } else {
+                label.removeClass('aasf-down');
+                label.addClass('aasf-left');
+            }
+        }); 
+
     }
 
     function bindUI () {
@@ -106,17 +126,26 @@ jQuery(document).ready(function($) {
 
         $( '.pages-filter a.page-numbers' ).click( function( evt ) {
             cancelSubmisson ( evt );
-
+            
             var url = $(evt.target).attr('href'),
                 page = url.match(/\/page\/(\d+)\//),  // assumes /page/ format and not &paged=
                 $el,
                 terms, filters;
 
-            $el = $( '.active-filter' );  // this is not a scalable way to do this
-            if( $el.length ) {
-               filters = getFiltersFromAttr( $el.data( "terms" ) );
-            } else {
+            // this is not a scalable way to do this
+            // if .active-filter is present, assume taxonomy links 
+            $el = $( '.active-filter' );
+            if( $el.length ) { 
+                filters = getFiltersFromAttr( $el.data( "terms" ) );
+            } 
+            
+            // if .aasf-tax-terms is present, assume taxonomy inputs 
+            else if( $('.aasf-tax-terms').length ) {
                 filters = getFiltersFromInputs();
+            
+            // assume there are no filters present, need to figure out query from url
+            } else {
+                filters = getFiltersFromUrl();
             }
             
             page = ( page ) ? page[1] : 1;
@@ -127,6 +156,19 @@ jQuery(document).ready(function($) {
         });
 
         // stop default form submission?    http://publications.america.dev/page/2/?s
+    }
+
+    function getFiltersFromUrl() {
+        var filters = {},
+            cat = location.pathname.split('/'), 
+            arr =  cat.filter( function(item) {
+                return item.trim() !== '';
+            });
+
+        filters[arr[0]] = [];
+        filters[arr[0]].push(arr[1]);
+
+        return filters;
     }
 
     function getFiltersFromAttr( terms ) {
@@ -142,7 +184,7 @@ jQuery(document).ready(function($) {
             }
             filters[term[0]].push(term[1]);
         });
-        
+       
         return filters;
     }
 
@@ -238,13 +280,17 @@ jQuery(document).ready(function($) {
 
 
     function addLoadingAnimation() {
-        $('.content').parent().append( '<div class="cssloader"><i></i><i></i><i></i></div>' );
+        $loaderHolder.append( '<div class="cssloader"><i></i><i></i><i></i></div>' );
+        $loaderHolder.css( ' position', 'relative');
+
         $loader = $( '.cssloader' );
         loaderHide();
     }
 
     function loaderShow() {
         $( 'main' ).addClass( 'overlay' );
+      
+        //$loader.css( 'top', window.scrollY + 'px' );
         $loader.show();
     }
 
@@ -255,6 +301,7 @@ jQuery(document).ready(function($) {
 
     function init() {
         bindUI();
+        bindSearchFilterMenu();
         addLoadingAnimation();
         //initializeFilter();  // sent from wp via localize_script
     }

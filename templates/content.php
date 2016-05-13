@@ -34,9 +34,9 @@
                         }
                     } 
                     the_excerpt(); 
-                
+              
                     $cats = get_the_term_list( get_the_ID(), 'category', '<div><span class="aasf-label">Subject:</span> ', ', ', '</div>' );
-                    if( $cats ) { 
+                    if( $cats && !$GLOBALS['isCategory'] ) { 
                         echo $cats;
                     }
                        

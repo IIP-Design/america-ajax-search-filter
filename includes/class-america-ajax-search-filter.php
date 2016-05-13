@@ -21,7 +21,7 @@ class America_Ajax_Search_Filter {
 	/**
 	 * Main aasf Instance
 	 *
-	 * Ensures only one instance of America_Ajax_Search_Filter is loaded or can be loaded.d
+	 * Ensures only one instance of America_Ajax_Search_Filter is loaded or can be loaded
 	 *
 	 * @since 1.0.0
 	 * @static
@@ -70,7 +70,7 @@ class America_Ajax_Search_Filter {
 
 	function aasf_enqueue_scripts () {
 		if( is_search() || is_archive() ) {
-			wp_register_style( 'frontend-css', $this->assets_url . 'css/frontend.css', array(), false, 'all' );
+			wp_register_style( 'frontend-css', $this->assets_url . 'dist/frontend.min.css', array(), false, 'all' );
 			wp_enqueue_style( 'frontend-css' );
 
 			wp_register_script( 'images-loaded', 'https://npmcdn.com/imagesloaded@4.1/imagesloaded.pkgd.min.js', array(), false, true );
@@ -79,7 +79,7 @@ class America_Ajax_Search_Filter {
 			wp_register_script( 'isotope', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.2/isotope.pkgd.min.js', array(), false, true );
 			wp_enqueue_script( 'isotope' );
 
-			wp_register_script( 'frontend-js', $this->assets_url . 'js/frontend.js', array('jquery'), false, true );
+			wp_register_script( 'frontend-js', $this->assets_url . 'dist/frontend.min.js', array('jquery'), false, true );
 			wp_enqueue_script( 'frontend-js' );
 
 			wp_enqueue_script( 'underscore' );
@@ -88,8 +88,9 @@ class America_Ajax_Search_Filter {
 					'ajaxurl' => admin_url('admin-ajax.php'), 
 					'aasfNonce' => wp_create_nonce( 'aasf-ajax-post-nonce' ),
 					'container' => '.content',  // eventually fetch from «
-					'itemSelector' => 'article'
-				)
+					'itemSelector' => 'article',
+					'isCategory' => is_category()
+ 				)
 			);  // localize after init data return
 		}
 	}
@@ -135,7 +136,7 @@ class America_Ajax_Search_Filter {
 				
  				if( $terms = get_terms( $f[0] ) ) {
 					if( $show_taxonomy_name ) {			// what is title? taxonomy name or something else?  May need to adjust pub custom post type, check that empty php string returns true
-						$html .= '<li class="aasf-tax-name"><div class="aasf-tax-label">' . $this->get_taxonomy_name( $f[0] ) . '</div>';
+						$html .= '<li class="aasf-tax-name"><a class="aasf-trigger" href="#"><div class="aasf-tax-label aasf-down">' . $this->get_taxonomy_name( $f[0] ) . '</div></a>';
 						$html .= '<ul class="aasf-tax-terms">' . $this->render_terms( $terms, $options ) . '</ul>';
 						$html .= '</li>';
 					} else {
@@ -246,11 +247,11 @@ class America_Ajax_Search_Filter {
 			if( $name != 'Uncategorized') { 			// only show if has posts?
 				$html .= '<li class="aasf-tax-term">';
 				$html .= '<div class="aasf-field"><input id="' . $id .'" type="' . $view . '" name="' . $tax . '[]" value="' . $slug . '" ' . $checked  . ' rel="' . $tax .  '">'; //[] breaking js
-				$html .= '<label for="' . $id . '">' . $name . '</label></div>';
+				$html .= '<label for="' . $id . '">' . $name . '</label>';
 				if( $options['show_count'] ) {
 					$html .= '<div class="aasf-num">' . $num . '</div>';
 				}
-				$html .= '</li>';
+				$html .= '</div></li>';
 			}
 			$totalTermsInTax += $num;
 		}
@@ -370,15 +371,15 @@ class America_Ajax_Search_Filter {
 
 				$ids = array();
 				$this->parse_request_vars( $ids );  // what if no POST?
-				$str_ids = implode(' ', $ids );
+				$str_ids = implode(' ', $ids );  // what is this for?
 				
 				echo '<div class="pages-filter">';
 				echo paginate_links( array (
 					//'base'	 => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
 					'format'	 =>  $format,
 					'current'	 =>  max( 1, get_query_var('paged') ),
-					'prev_text'  => __('« Previous Page'),
-					'next_text'  => __('Next Page »'),
+					'prev_text'  => __('« Previous'),
+					'next_text'  => __('Next »'),
 					'total' 	 =>  $total,
 					'mid_size'	 =>  3,
 					'type' 		 =>  'list',
