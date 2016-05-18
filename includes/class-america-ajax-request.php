@@ -1,10 +1,15 @@
 <?php
 
-// pass # of columns in via admin
+/**
+ * Class that handles the requests coming from the client side js code
+ */
 class America_Ajax_Request {
 
     protected $tmpl_loader; 
 
+    /**
+     * Class contructor
+     */
     public function __construct() {
 
         add_action( "wp_ajax_nopriv_find-posts", array ( $this, 'fetch_posts' ) );
@@ -13,17 +18,14 @@ class America_Ajax_Request {
         // modify query for non js return
         add_action( "pre_get_posts", array( $this, 'modify_search_query'));
 
+        // TODO: should not be hardcoded, have it setting via settings screen
         $this->tmpl_loader = new America_Template_Loader( 'content.php', false, false );  
     }
 
-    // process Ajax data and send response function boj_myplugin_process_ajax() {
-    // check authority and permissions: current_user_can()
-    // check intention: wp_verify_nonce()
-    // process data sent by the Ajax request
-    // echo data response that the Ajax function callback will process die();
-    // esc attributes or incoming args
-    //}
-
+    /**
+     * Create query based on POST vars and echo to the screen
+     * @return void
+     */
     public function fetch_posts () {
         $query_data = $_POST;
         $nonce = $query_data['aasfNonce'];
@@ -38,7 +40,7 @@ class America_Ajax_Request {
         
         $args = array (
             'post_type'  => 'publication',  // needs to be sent in
-            'posts_per_page' => 12,  // use 3 for testing -- fetch posts-per-page from intial load
+            'posts_per_page' => 12,         // use 3 for testing -- fetch posts-per-page from intial load
             'tax_query' => $this->get_taxonomy_query( $filters ),
             'paged' => $paged,
             'post_status' => 'publish' 
@@ -50,8 +52,8 @@ class America_Ajax_Request {
 
         $qry = new WP_Query( $args );
 
-        // pass this into template->this is not good way -> create another template for category archive
-        // templates shoiuld be moved to theme
+        // TODO - create another template for category archive, should be configurable via settings screen
+        // TODO - templates should be moved to theme
         $GLOBALS['isCategory'] = $query_data['isCategory'];  
         
         ob_start();
@@ -202,5 +204,6 @@ class America_Ajax_Request {
 
 } // end of  America_Ajax_Request
 
+// intialize 
 $aasf_request = new America_Ajax_Request ();
 

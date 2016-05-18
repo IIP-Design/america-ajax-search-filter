@@ -29,6 +29,10 @@ module.exports = function(grunt) {
 
         uglify: {
           build: {
+            options: {
+              sourceMap: true,
+              sourceMapIncludeSources: true
+            },
             files: {
               'assets/dist/frontend.min.js': ['assets/js/frontend.js']
             }

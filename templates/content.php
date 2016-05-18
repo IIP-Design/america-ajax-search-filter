@@ -1,7 +1,7 @@
 <?php
 /**
  * The default template for displaying post content
- * This file should go in the theme.  Default template should be generic
+ * TODO: This file should go in the theme.  Default template should be generic
  */
 ?>
 

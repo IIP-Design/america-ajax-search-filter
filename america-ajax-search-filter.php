@@ -3,7 +3,7 @@
 
 Plugin Name: 	 America Ajax Search & Filter
 Description:     Javascript search and filter
-Version:         dev-0.0.1
+Version:         1.0
 Author:          By Office of Design, Bureau of International Information Programs
 License:         GPLv3
 Text Domain:     america
@@ -23,21 +23,21 @@ require_once( 'includes/class-america-template-loader.php' );
 require_once( 'includes/class-america-ajax-request.php' );
 
 /**
- * Returns the main instance of asf to prevent the need to use globals.
+ * Returns the main instance of aasf to prevent the need to use globals.
  *
  * @since  1.0.0
  * @return object America_Ajax_Search_Filter
  */
 function america_ajax_search_filter () {
-	$instance = America_Ajax_Search_Filter::instance( __FILE__, 'dev-0.0.1' );
+	$instance = America_Ajax_Search_Filter::instance( __FILE__, '1.0' );
 
 	if ( is_null( $instance->settings ) ) {
+		// TODO: create plugin settings screens
 		$instance->settings = America_Ajax_Search_Filter_Settings::instance( $instance );
 	}
 
 	return $instance;
 }
 
+// initialize
 america_ajax_search_filter();
-
-//add_action( 'all', create_function( '', 'var_dump( current_filter() );' ) );

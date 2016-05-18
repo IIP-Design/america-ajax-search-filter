@@ -33,7 +33,7 @@ jQuery(document).ready(function($) {
                 if( xhr.readyState == 4 ) {
                     $('.content').html( data );
                     loaderHide();
-                    bindUI();  // need to verify whether listeners are reomved with DOM el
+                    bindUI();  // need to verify whether listeners are reemoved with DOM el
                 }
 	        },
 	        error: function( err ) {
@@ -43,9 +43,14 @@ jQuery(document).ready(function($) {
 	    });  
     }
 
+    // TODO: cache jQuery references
+    function cacheElements() { 
+
+    }
+
     function sendRequest( filters, page ) {
         var params = getQueryParams(),
-            searchValue = $('input[type="search"').val();
+            searchValue = $('input[type="search"]').val();
         
         if( params && params.hasOwnProperty("s") ) {
             filters['s'] = ( searchValue ) ? searchValue : params['s'];
@@ -135,6 +140,7 @@ jQuery(document).ready(function($) {
             // this is not a scalable way to do this
             // if .active-filter is present, assume taxonomy links 
             $el = $( '.active-filter' );
+           
             if( $el.length ) { 
                 filters = getFiltersFromAttr( $el.data( "terms" ) );
             } 
@@ -145,7 +151,7 @@ jQuery(document).ready(function($) {
             
             // assume there are no filters present, need to figure out query from url
             } else {
-                filters = getFiltersFromUrl();
+                 filters = getFiltersFromUrl();
             }
             
             page = ( page ) ? page[1] : 1;

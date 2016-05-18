@@ -10,9 +10,9 @@ class America_Ajax_Search_Filter {
 
 	private $_version;
 	private $_token;
-	private $_show_filters = true;   // only show url filters if a more than 1 taxonomy terms has posts
+	private $_show_filters = true;   // only show url filters if a more than 1 taxonomy term has posts
 
-	public $settings = null;
+	public $settings = null;		
 
 	public $dir;
 	public $assets_dir;
@@ -25,6 +25,9 @@ class America_Ajax_Search_Filter {
 	 *
 	 * @since 1.0.0
 	 * @static
+	 * @param string $file plugin path
+	 * @param number $version version number
+	 * 
 	 * @return Main America_Ajax_Search_Filter instance
 	 */
 	public static function instance( $file = '', $version = '1.0.0' ) {
@@ -35,7 +38,13 @@ class America_Ajax_Search_Filter {
 		return self::$_instance;
 	} 
 
-
+	/**
+	 * Class constructor
+	 * @param string $file plugin path
+	 * @param number $version version number
+	 *
+	 * @return  void
+	 */
 	function __construct( $file, $version ) {
 		$this->_version = $version;
 		$this->_token = 'aasf_plugin';
@@ -49,57 +58,67 @@ class America_Ajax_Search_Filter {
 		add_action( 'wp_head', array( $this , 'aasf_no_script' ) );
 		add_action( 'wp_enqueue_scripts', array( $this , 'aasf_enqueue_scripts' ) );
 
-		// genesis actions need to be removed so plugin can be used w/o
-		//add_action( 'genesis_before_footer', array( $this,'pagination') );
 		add_action( 'genesis_after_loop', array( $this,'pagination') );
 
-		//add_filter( 'widget_text', array( $this, 'shortcode_unautop' ));  // allow shortcodes to work in text widgets
-		//add_filter( 'widget_text', array( $this, 'do_shortcode') );
+		// allow shortcodes to work in text widgets
+		// add_filter( 'widget_text', array( $this, 'shortcode_unautop' ));  
+		// add_filter( 'widget_text', array( $this, 'do_shortcode') );
 
 		add_shortcode( 'aasf', array($this, 'aasf_shortcode') );
 	}
 
 	/**
 	 * Show filter submit button if javascript is turned off
+	 * @return void 
 	 */
 	function aasf_no_script() {
 		$output = '<noscript><style type="text/css"> .aasf-btn--submit { display:block; }</style></noscript>';
-		// TESTING $output = '<style type="text/css"> .aasf-btn--submit { display:block; }</style>';
 		echo $output;
 	}
 
+	/**
+	 * Load scripts
+	 * @return void
+	 */
 	function aasf_enqueue_scripts () {
 		if( is_search() || is_archive() ) {
 			wp_register_style( 'frontend-css', $this->assets_url . 'dist/frontend.min.css', array(), false, 'all' );
 			wp_enqueue_style( 'frontend-css' );
 
 			wp_register_script( 'images-loaded', 'https://npmcdn.com/imagesloaded@4.1/imagesloaded.pkgd.min.js', array(), false, true );
-			wp_enqueue_script( 'images-loaded' );
+			//wp_enqueue_script( 'images-loaded' );
 
 			wp_register_script( 'isotope', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.2/isotope.pkgd.min.js', array(), false, true );
-			wp_enqueue_script( 'isotope' );
+			//wp_enqueue_script( 'isotope' );
 
 			wp_register_script( 'frontend-js', $this->assets_url . 'dist/frontend.min.js', array('jquery'), false, true );
 			wp_enqueue_script( 'frontend-js' );
 
 			wp_enqueue_script( 'underscore' );
 
+			// Set up variables to pass to the client side script
 			wp_localize_script('frontend-js', 'aasf', array (
-					'ajaxurl' => admin_url('admin-ajax.php'), 
+					'ajaxurl' => admin_url( 'admin-ajax.php' ), 
 					'aasfNonce' => wp_create_nonce( 'aasf-ajax-post-nonce' ),
-					'container' => '.content',  // eventually fetch from «
+					'container' => '.content',  // TODO: eventually fetch from «
 					'itemSelector' => 'article',
 					'isCategory' => is_category()
  				)
-			);  // localize after init data return
+			);  // TODO: localize after init data return
 		}
 	}
-
 	
-	// for php version, will need to handle css display for selected item on page load/reload
-	// add class to shortcode return
-	// filterBy, label, layout (checkbox, radio, link), show results number, base result- cat, taxonomy, search result
-	function aasf_shortcode( $atts ) {     // possible atts: header, position (top, side), all (show all results), show if empty--i.e. no results for 'about america', result set
+	/**
+	 * Shortcode entry method - call supporting methods
+	 * @param  array $atts Configuration variables added in via shortcode:
+     *               filter_by   			taxonomy and layout to filter by (i.e. category|checkbox), layout can be either url, checkbox or radio
+     *               label 					show label (i.e. 'Filter by')
+     *               show_count				show the number of items in filter set
+     *               show_taxonomy_name 	show the taxonomy name
+	 * @example [aasf filter_by="publication_type|checkbox, category|url" show_taxonomy_name="true", label="Filter by:"]                 
+	 * @return string Generated html to display
+	 */
+	function aasf_shortcode( $atts ) {    
 		$merged_atts = shortcode_atts( array (
 			'filter_by' => [],
 			'label' => '',
@@ -112,6 +131,12 @@ class America_Ajax_Search_Filter {
 		return $output;
 	}
 
+	/**
+	 * Parses configuration variables and renders applicable html
+	 * @param  array $atts  Configuratin variables
+	 * 
+	 * @return string Generated html to display
+	 */
 	function render( $atts ) {
 		extract( $atts );
 
@@ -123,19 +148,21 @@ class America_Ajax_Search_Filter {
 
 		$html = '<div class="aasf-wrapper">';
 
-		if ( $this->has_taxonomy_terms($filters) ) {  // make sure that there are taxonomy terms present in any of the filters before we write out any html
+		// make sure that there are taxonomy terms present in any of the filters before we write out any html
+		if ( $this->has_taxonomy_terms($filters) ) {  
 			if( trim($label) ) {
 				$html .= '<span class="aasf-label">' . $label . '</span>';
 			}
 
 			$html .= '<ul class="aasf-terms-parent">';
 			foreach ( $filters as $filter ) {	
-				$f = explode( '|', $filter );   // get view, search type
-				$options['view'] = $f[1];
-				// $options['search_type'] = $f[2];
+				$f = explode( '|', $filter );   // get layout and filter
+				$options['view'] = $f[1];		// store view in options obj for use in other methods
 				
+				
+ 				// check to see if there are terms available for the taxonomy and if so display
  				if( $terms = get_terms( $f[0] ) ) {
-					if( $show_taxonomy_name ) {			// what is title? taxonomy name or something else?  May need to adjust pub custom post type, check that empty php string returns true
+					if( $show_taxonomy_name ) {			
 						$html .= '<li class="aasf-tax-name"><a class="aasf-trigger" href="#"><div class="aasf-tax-label aasf-down">' . $this->get_taxonomy_name( $f[0] ) . '</div></a>';
 						$html .= '<ul class="aasf-tax-terms">' . $this->render_terms( $terms, $options ) . '</ul>';
 						$html .= '</li>';
@@ -145,15 +172,23 @@ class America_Ajax_Search_Filter {
 				}
 			}
 			$html .= '</ul></div>';
+			
+			// if we are on a search page get search query and store in hidden field for use when js is disabled
 			if( is_search() ) {
 				$html .= '<input type="hidden" name="s" value="' . get_query_var('s') .'">';
 			}
 			
+			// wrap complete html in a form 
 			$html = $this->render_form_wrapper( $html, $options );
 		}
+
+		// only show filters if there are multiple taxonomies
 		return ( $this->_show_filters ) ? $html : '';
 	}
 
+	/**
+	 * @param  string $taxonomy 
+	 */
 	function get_taxonomy_name( $taxonomy ) {
 		$tax = get_taxonomy( $taxonomy );
 		return $tax->labels->name;
@@ -161,8 +196,8 @@ class America_Ajax_Search_Filter {
 
 	/**
 	 * Check to make sure that ANY taxonomy exist for any filters
-	 * @param  [type]  $taxonomies [description]
-	 * @return boolean             has taxonomies?
+	 * @param  array  $taxonomies  array of taxonomies
+	 * @return boolean             are there taxonomies?
 	 */
 	function has_taxonomy_terms( $taxonomies ) {
 		foreach ( $taxonomies as $taxonomy ) {
@@ -173,9 +208,13 @@ class America_Ajax_Search_Filter {
 		return false;
 	}
 
+	/**
+	 * Sends terms to applicable method based on the layout configuration  var
+	 * @param   array $terms    taxonomy terms to render
+	 * @param   array $options  configuration variables
+	 * @return  string          html for terms
+	 */
 	function render_terms( $terms, $options ) {
-		$count = $options['show_count'];
-
 		$html = '';
 		switch ( $options['view'] ) {
 			case 'url':
@@ -192,9 +231,15 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 
+	/**
+	 * Renders terms as a urls
+	 * @param   array $terms    taxonomy terms to render
+	 * @param   array $options  configuration variables
+	 * @return  string          html for url
+	 */
 	function render_url( $terms, $options ) {
 		$html = '';
-		$cat =  get_query_var( 'category_name'); // assuming category, update to be more generic, i.e. taxonomy page
+		$cat =  get_query_var( 'category_name'); // TODO: assumes category, update to be more generic, i.e. taxonomy page
 		$all = '';
 		$num_terms = count($terms); 
 		$num_terms_with_posts = 0; 
@@ -203,9 +248,11 @@ class America_Ajax_Search_Filter {
 	
 			$num = $this->get_term_count( $term->taxonomy, $term->name );
 			
-			$data = 'category__' . $cat . ',';   // assuming category but need to analyize url
+			$data = 'category__' . $cat . ',';   // TODO: assumes category but need to parse/analyize url
 			$data .= $term->taxonomy . '__' . $term->slug;
-			$cls = ( strpos($_SERVER['REQUEST_URI'], $term->slug ) !== false ) ? 'active-filter' : '';
+			
+			// if terms slug is present in url then it is the active filter so display as active
+			$cls = ( strpos($_SERVER['REQUEST_URI'], $term->slug ) !== false ) ? 'active-filter' : '';  
 
 			if( $num ) {  // only show terms that have posts
 				$num_terms_with_posts++;
@@ -229,8 +276,14 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 
+	/**
+	 * Renders terms as either checkboxes or radio buttons
+	 * @param   array $terms    taxonomy terms to render
+	 * @param   array $options  configuration variables
+	 * @return  string          html for inputs
+	 */
 	function render_inputs( $terms, $options ) {   // need full $options?
-		$totalTermsInTax = 0;  // total terms in taxonomy
+		$totalTermsInTax = 0;  // total terms in a taxonomy
 
 		$html = '';
 
@@ -265,6 +318,12 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 	
+	/**
+	 * Checks to see if a term is checked. Uses POST for non js 
+	 * @param  [type]  $tax  [description]
+	 * @param  [type]  $slug [description]
+	 * @return boolean       [description]
+	 */
 	function is_checked ( $tax, $slug ) {
 		$req_method = $_SERVER['REQUEST_METHOD'];
 		
@@ -288,6 +347,9 @@ class America_Ajax_Search_Filter {
         return false;
     }
 
+	/**
+	 * Add an all link.  Currently not beig used
+	 */
 	function add_input_all( $tax, $num, $show ) {
 		$html = '';
 
@@ -302,6 +364,12 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 
+	/**
+	 * Wrap generated html in a form
+	 * @param  string $html    generated html
+	 * @param  array  $options config vars
+	 * @return string          generated html wrapped in form
+	 */
 	function render_form_wrapper( $html, $options ) {
 		if( $options['view'] != 'url') { 
 			$html = '<form id="aasf-filter" method="post" action="">' . $html . '<button class="aasf-btn--submit" type="submit">Filter</button>' . '</form>';
@@ -309,8 +377,13 @@ class America_Ajax_Search_Filter {
 		return $html;
 	}
 
-	// is this the most efficient way of doing this as could be hitting db numerous times
-	// can we query the default loop instead?
+	/**
+	 * Returns the number of posts in taxonomy term
+	 * Notes: Is this the most efficient way of doing this as could be hitting db numerous times. Can we query the default loop instead?
+	 * @param  string $tax   taxonomy
+	 * @param  string $term  term
+	 * @return number        num posts
+	 */
 	function get_term_count( $tax, $term ) {  
 		$args = array();
 
@@ -330,10 +403,17 @@ class America_Ajax_Search_Filter {
 			)
 		);
 		$query = new WP_Query( $args );
+
+		// TODO:  Term count is incorrect due to sub categories
 		return $query->post_count;
 	}
 
 
+	/**
+	 * Parse request vars to add term/tax id as an argument to assist in pagination
+	 * @param  [type] &$ids Passed by reference so popluates array in calling method
+	 * @return void      
+	 */
 	function parse_request_vars( &$ids ) {
 		if( is_search() || is_archive() ) {
     		 if( !empty($_POST) ) {
@@ -371,7 +451,7 @@ class America_Ajax_Search_Filter {
 
 				$ids = array();
 				$this->parse_request_vars( $ids );  // what if no POST?
-				$str_ids = implode(' ', $ids );  // what is this for?
+				$str_ids = implode(' ', $ids );  	// what is this for?
 				
 				echo '<div class="pages-filter">';
 				echo paginate_links( array (
