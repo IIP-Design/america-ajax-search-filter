@@ -1,0 +1,253 @@
+@import '../node_modules/normalize-css/normalize';
+
+
+
+
+/*------------------------------------*\
+  #BASE
+\*------------------------------------*///
+
+body {
+  color: $font-color;
+  font: 1em/1.4em "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 1em;
+
+  @include bp($laptop) {
+    margin: 0;
+    padding: em(50);
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 1em;
+}
+
+p, ul, ol, table, pre, dl {
+  margin: 0 0 1.25em;
+}
+
+h1, h2, h3 {
+  line-height: 1.1;
+}
+
+h3 {
+  border-bottom: 1px dotted $font-color;
+  margin-top: 2.25em;
+  padding: 0 0 0.5em;
+}
+
+a {
+  color: $link-color;
+  text-decoration: none;
+}
+
+a:hover {
+  color: darken($link-color, 20%);
+}
+
+a small {
+  display: block;
+  font-size: em(11);
+  margin-top: -0.3em;
+}
+
+blockquote {
+  border-left: $border;
+  font-style: italic;
+  margin: 0;
+  padding: 0 0 0 em(20);
+}
+
+code, pre {
+  font-family: Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal, Consolas, Liberation Mono, DejaVu Sans Mono, Courier New, monospace;
+  font-size: em(14, 16);
+  line-height: 1em;
+}
+
+pre {
+  background: $background;
+  border: $border;
+  border-radius: $border-radius;
+  overflow: auto;
+  padding: em(8) em(15);
+  white-space: pre;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border-bottom: $border;
+  padding: em(5) em(10);
+  text-align: left;
+}
+
+img {
+  max-width: 100%;
+}
+
+strong {
+  font-weight: 700;
+}
+
+small {
+  font-size: em(11);
+}
+
+hr {
+  background: $font-color;
+  border: 0;
+  height: em(1);
+  margin:0 0 em(20);
+}
+
+dt {
+  font-weight: bold;
+  margin: 1.25em 0 0 0;
+}
+
+dd {
+  margin: 1em 0 1em 1.5em;
+}
+
+@media print {
+  body {
+    color:#444;
+    font-size:12pt;
+    padding:0.4in;
+  }
+}
+
+
+
+
+/*------------------------------------*\
+  #LAYOUT
+\*------------------------------------*/
+
+.wrapper {
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.default .wrapper {
+  @include bp($laptop) {
+    width: 860px;
+  }
+}
+
+.primary-nav {
+  padding-bottom: 2em;
+
+  ul {
+    margin: 0;
+    padding: 0 0 0 1.5em;
+  }
+
+  @include bp($laptop) {
+    -webkit-font-smoothing:subpixel-antialiased;
+    float: left;
+    position: fixed;
+    top: em(325);
+    width: em(270);
+  }
+}
+
+header {
+  padding-bottom: 2em;
+
+  h1 {
+    margin-bottom: .5em;
+  }
+
+  @include bp($laptop) {
+    -webkit-font-smoothing:subpixel-antialiased;
+    float: left;
+    position: fixed;
+    width: em(270);
+  }
+}
+
+.header-description {
+  font-size: .9em;
+  color: lighten( #444, 10%);
+}
+
+.view {
+  margin-top: 2em;
+}
+
+section {
+  padding-bottom: em(50);
+
+  @include bp($laptop) {
+    float: right;
+    width: em(500);
+  }
+}
+
+footer {
+  @include bp($laptop) {
+    float: right;
+    width: 31.25em;
+  }
+}
+
+
+
+
+/*------------------------------------*\
+  #BUTTONS
+\*------------------------------------*/
+
+header ul {
+  background: $background;
+  border: $border;
+  border-radius: $border-radius;
+  height: em(40);
+  list-style: none;
+  padding:0;
+  width: em(270);
+}
+
+header li {
+  border-right: $border;
+  float: left;
+  height: em(40);
+  width: em(89);
+}
+
+header li:first-child a {
+  border-radius: $border-radius 0 0 $border-radius;
+}
+
+header li:last-child a {
+  border-radius:0 $border-radius $border-radius 0;
+}
+
+header ul a {
+  color: $font-color;
+  display: block;
+  font-size: em(11);
+  height: em(34);
+  line-height: 1;
+  padding-top: em(6);
+  text-align: center;
+}
+
+header li a:hover {
+  color: $font-color;
+}
+
+header ul li + li + li {
+  border-right: 0;
+  width: em(89);
+}
+
+header strong {
+  display: block;
+  font-size: em(14, 11);
+  line-height: 1.5em;
+}

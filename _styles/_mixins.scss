@@ -1,0 +1,78 @@
+/*------------------------------------*\
+  #EM-CONVERSION
+\*------------------------------------*/
+
+/**
+  * Convert px to em.
+  *
+  * @param {number} (optional) font-size context
+  *
+  * @example 'font-size: 14px; margin: em(16, 14); // generates: 1.143em'
+  * @example 'font-size: 16px; margin: em(16); // generates: 1em'
+  *
+  */
+
+$font-size-context: 16; // Default
+
+@function em($pixels, $context: $font-size-context) {
+  @return #{$pixels/$context}em;
+}
+
+
+
+
+/*------------------------------------*\
+  #MEDIA-QUERY
+\*------------------------------------*/
+
+/**
+  * Media query within the style declaration. Designed for mobile-first.
+  *
+  * @param A valid media query breakpoint
+  *
+  * @example
+  *
+  * .site-container {
+  *   margin: 0;
+  *
+  *   @include bp(48em) {
+  *     margin: 1em;
+  *   }
+  * }
+  *
+  */
+
+@mixin bp($point) {
+  @media ( 'min-width:' + $point ) {
+    @content;
+  }
+}
+
+
+
+
+/*------------------------------------*\
+  #VISUALLY-HIDDEN
+\*------------------------------------*/
+
+/**
+  * Hide visual elements in a way that makes them accessible to screen readers
+  *
+  * @example
+  *
+  * label {
+  *   @extend %visuallyhidden;
+  * }
+  *
+  */
+
+%visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute !important;
+  width: 1px;
+}

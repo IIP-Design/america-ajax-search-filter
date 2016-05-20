@@ -1,0 +1,45 @@
+{
+  "name": "america-ajax-search",
+  "description": "Ajax search and filter plugin",
+  "main": "index.php",
+  "scripts": {
+    "sass": "node-sass --output-style compressed styles.scss > styles.css",
+    "autoprefixer": "postcss -m -u autoprefixer --autoprefixer.browsers '> 5%' styles.css -o styles.css",
+    "css": "npm run sass && npm run autoprefixer",
+    "uglify": "uglifyjs js/src/*.js -o js/dist/script.js",
+    "imagemin": "imagemin images/src/* images/dist",
+    "jekyll": "jekyll build",
+    "server": "browser-sync start --server --port '4000' --index '_site/index.html' --serveStatic '_site' --files '_site/*'",
+    "watch:sass": "onchange './_styles/**/*.scss' './_styles/*.scss' './styles.scss' -- npm run css",
+    "watch:js": "onchange ./js/src/*.js -v -- npm run uglify",
+    "watch:image": "onchange ./images/src/* -- npm run imagemin",
+    "watch:jekyll": "onchange 'styles.css' 'images/dist/*' 'js/dist/*' './**/*.html' './**/*.md' -e '_site/' -- npm run jekyll",
+    "watch": "parallelshell 'npm run server' 'npm run watch:sass' 'npm run watch:js' 'npm run watch:image' 'npm run watch:jekyll'",
+    "modernizr:dev": "node_modules/modernizr/bin/modernizr -c node_modules/modernizr/lib/config-all.json -d js/src/modernizr.dev.js",
+    "prod": "parallelshell 'npm run css' 'npm run uglify' 'npm run imagemin' 'npm run jekyll'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/USStateDept/america-ajax-search-filter.git"
+  },
+  "author": "Office of Design, U.S. Department of State",
+  "license": "GPL-2.0+",
+  "bugs": {
+    "url": "https://github.com/USStateDept/america-ajax-search-filter/issues"
+  },
+  "homepage": "https://github.com/USStateDept/america#readme",
+  "devDependencies": {
+    "autoprefixer": "^6.3.6",
+    "browser-sync": "^2.12.1",
+    "imagemin-cli": "^2.1.0",
+    "node-sass": "^3.4.2",
+    "onchange": "^2.3.0",
+    "parallelshell": "^2.0.0",
+    "postcss-cli": "^2.5.1",
+    "uglify-js": "^2.6.2",
+    "modernizr": "^3.3.1"
+  },
+  "dependencies": {
+    "normalize-css": "^2.3.1"
+  }
+}
