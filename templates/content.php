@@ -12,7 +12,7 @@
                 if ( has_post_thumbnail() ) {
                     $image = get_the_post_thumbnail( get_the_ID(), 'post-thumbnail', array( 'alt' => the_title_attribute( 'echo=0' ) ));
                 } else {
-                    $image = 'http://dummyimage.com/150x188/ddd/aaa.png&text=placeholder';
+                    $image = wp_get_attachment_image( 307, 'post-thumbnail', false); // placholder image
                 }
                 echo sprintf( '<a href="%s" rel="bookmark">', esc_url( get_permalink() ) ) . $image . '</a>';
             ?>
@@ -28,9 +28,15 @@
             <div>
                 <?php 
                     if( taxonomy_exists('publication_type') ) { 
-                        $formats = get_the_term_list( get_the_ID(), 'publication_type', '<div><span class="aasf-label">Format:</span> ', ', ', '</div>' );
-                        if( $formats ) {
-                            echo $formats;
+                        $id = get_the_ID();
+                        $terms = get_the_terms( $id , 'publication_type' );
+                        if ( $terms  && ! is_wp_error( $terms  ) ) {
+                            $formats = array();
+                            foreach ( $terms as $term ) {
+                                $formats[] = $term->name;
+                            }
+                            $list = join( ", ", $formats );
+                            echo '<div><span class="aasf-label">Format: ' . esc_html( $list ) . '</span></div>';
                         }
                     } 
                     the_excerpt(); 

@@ -53,7 +53,7 @@ class America_Ajax_Request {
         $qry = new WP_Query( $args );
 
         // TODO - create another template for category archive, should be configurable via settings screen
-        // TODO - templates should be moved to theme
+        // TODO - **** templates should be moved to theme ****
         $GLOBALS['isCategory'] = $query_data['isCategory'];  
         
         ob_start();
