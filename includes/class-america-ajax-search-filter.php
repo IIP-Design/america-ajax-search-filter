@@ -85,7 +85,7 @@ class America_Ajax_Search_Filter {
 			wp_register_style( 'frontend-css', $this->assets_url . 'dist/frontend.min.css', array(), false, 'all' );
 			wp_enqueue_style( 'frontend-css' );
 
-			wp_register_script( 'images-loaded', 'https://npmcdn.com/imagesloaded@4.1/imagesloaded.pkgd.min.js', array(), false, true );
+			wp_register_script( 'images-loaded', 'https://unpkg.com/imagesloaded@4.1/imagesloaded.pkgd.min.js', array(), false, true );
 			//wp_enqueue_script( 'images-loaded' );
 
 			wp_register_script( 'isotope', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/2.2.2/isotope.pkgd.min.js', array(), false, true );
