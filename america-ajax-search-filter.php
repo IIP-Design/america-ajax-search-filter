@@ -13,7 +13,7 @@ Domain Path:     /languages/
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define("AASF_PLUGIN_DIR", plugin_dir_path( dirname( __FILE__ ) ) . 'america-ajax-search/' );
+define('AASF_PLUGIN_DIR', plugin_dir_path( dirname( __FILE__ ) ) . 'america-ajax-search/' );
 
 // Load plugin class files
 require_once( 'includes/class-america-ajax-search-filter.php' );
