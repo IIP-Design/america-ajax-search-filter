@@ -8,7 +8,7 @@ class America_Ajax_Request {
     protected $tmpl_loader; 
 
     /**
-     * Class contructor
+     * Class constructor
      */
     public function __construct() {
 
@@ -40,7 +40,7 @@ class America_Ajax_Request {
         
         $args = array (
             'post_type'  => 'publication',  // needs to be sent in
-            'posts_per_page' => 12,         // use 3 for testing -- fetch posts-per-page from intial load
+            'posts_per_page' => 12,         // use 3 for testing -- fetch posts-per-page from initial load
             'tax_query' => $this->get_taxonomy_query( $filters ),
             'paged' => $paged,
             'post_status' => 'publish' 
