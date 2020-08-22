@@ -30,7 +30,7 @@ class America_Ajax_Search_Filter {
 	 * 
 	 * @return Main America_Ajax_Search_Filter instance
 	 */
-	public static function instance( $file = '', $version = '1.0.0' ) {
+	public static function instance( $file = '', $version = '1.2.1' ) {
 
 		if ( is_null( self::$_instance ) ) {
 			self::$_instance = new self( $file, $version );

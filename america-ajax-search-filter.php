@@ -3,7 +3,7 @@
 
 Plugin Name: 	 America Ajax Search & Filter
 Description:     Javascript search and filter
-Version:         1.0
+Version:         1.2.1
 Author:          By Office of Design, Bureau of International Information Programs
 License:         GPLv3
 Text Domain:     america

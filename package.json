@@ -1,7 +1,7 @@
 {
   "name": "aasf-search-filter-plugin",
   "title": "America Search and Filter plugin",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "main": "Gruntfile.js",
   "scripts": {
     "test": "mocha assets/js/frontend.test.js"
